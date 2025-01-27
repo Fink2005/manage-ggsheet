@@ -1,0 +1,73 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+app = Flask(__name__)
+CORS(app) 
+# Google Sheets Setup
+def setup_google_sheets():
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets"
+    ]
+    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    client = gspread.authorize(creds)
+    sheet_id = '1pFebuHSw035oDDvPkz2gSc4pAAUP6um5evC7TCuYckE'  # Your sheet ID
+    return client.open_by_key(sheet_id)
+
+@app.route('/write', methods=['POST'])
+def write_sheet():
+    sheet = setup_google_sheets().worksheet("sheet2")  # Ensure you're working with the correct sheet
+    data = request.json
+
+    # Start checking from row 6
+    start_row = 6
+    all_values = sheet.get_all_values()
+    row_index = start_row
+
+    # Check for 'Tổng' in the rows
+    for i in range(start_row - 1, len(all_values)):  # -1 because list index starts at 0
+        if 'Tổng' in all_values[i]:  # Check if 'Tổng' is in the row
+            row_index = i + 1  # Insert a new row above the row containing 'Tổng'
+
+            # Insert a blank row
+            sheet.insert_row([], row_index)
+            # Generate a new SUM formula for the 'Tổng' row
+            sum_formula = f"=SUM(G{start_row}:G{row_index})"
+            sum_formula2 = f"=SUM(H{start_row}:H{row_index})"
+            sheet.update_cell(row_index + 1, 7, sum_formula)  # Reapply the formula in the updated position
+            sheet.update_cell(row_index + 1, 8, sum_formula2)  
+            break
+    else:
+        # If 'Tổng' is not found, find the first empty row
+        while row_index <= len(all_values) and any(sheet.row_values(row_index)):
+            row_index += 1
+    
+    # Update the specific row with the provided data
+    tienMat = int(data.get("tien_mat")) if data.get("tien_mat") is not None else 0
+    tienNganHang = int(data.get("chuyen_khoan")) if data.get("chuyen_khoan") is not None else 0
+    
+    
+    
+    values = [
+        data.get("so_hd"),
+        data.get("khach_hang"),
+        data.get("dv_duong_sinh"),
+        data.get("the_dv"),
+        data.get("dv_spa"),
+        data.get("dv_nail"),
+        tienMat,
+        tienNganHang,
+        data.get("the_dv_t"),
+        data.get("nhan_vien"),
+        data.get("ghi_chu"),
+    ]
+    sheet.update(f"A{row_index}:{chr(65 + len(values) - 1)}{row_index}", [values])
+
+    return jsonify({"message": f"Thêm hàng {row_index} thành công."})
+
+
+
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
