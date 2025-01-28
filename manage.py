@@ -1,8 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
+import json
+from dotenv import load_dotenv
+import os
+from google.oauth2.service_account import Credentials
+load_dotenv()
 app = Flask(__name__)
 CORS(app) 
 # Google Sheets Setup
@@ -10,9 +13,10 @@ def setup_google_sheets():
     scope = [
         "https://www.googleapis.com/auth/spreadsheets"
     ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    credentials_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    creds = Credentials.from_service_account_info(json.loads(credentials_json), scopes=scope)
     client = gspread.authorize(creds)
-    sheet_id = '1pFebuHSw035oDDvPkz2gSc4pAAUP6um5evC7TCuYckE'  # Your sheet ID
+    sheet_id = os.getenv("SHEET_ID")
     return client.open_by_key(sheet_id)
 
 @app.route('/write', methods=['POST'])
