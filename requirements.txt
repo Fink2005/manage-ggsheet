@@ -1,0 +1,5 @@
+flask==2.0.1
+flask-cors==2.0.0
+gspread==3.7.0
+google.oauth2.service_account==0.5.1
+dotenv==0.15.0
