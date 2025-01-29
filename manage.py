@@ -18,7 +18,6 @@ def setup_google_sheets():
     client = gspread.authorize(creds)
     sheet_id = os.getenv("SHEET_ID")
     return client.open_by_key(sheet_id)
-
 @app.route('/write', methods=['POST'])
 def write_sheet():
     sheet = setup_google_sheets().worksheet("sheet2")  # Ensure you're working with the correct sheet
