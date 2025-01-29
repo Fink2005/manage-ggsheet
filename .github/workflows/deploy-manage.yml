@@ -1,0 +1,44 @@
+name: Flask Application CI/CD
+
+on:
+  push:
+    branches: ["main"] # Or any other branch you want to trigger the workflow
+
+jobs:
+  ci: # Continuous Integration job
+    name: Run Tests and Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout repository
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x" # Replace with the version you're using (e.g., 3.8, 3.9, etc.)
+          install-dependencies: true
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: pytest tests/ # Assuming your tests are in a `tests/` directory
+
+  cd: # Continuous Deployment job
+    name: Deploy to Server or Webhost
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout repository
+      - name: Set up server environment
+        run: |
+          echo "Setting up server environment..."
+          # Commands to prepare your server environment (e.g., install dependencies, configure SSH)
+      - name: Deploy application
+        run: |
+          echo "Deploying application to server..."
+          # Commands to deploy your Flask application (e.g., use rsync, SCP, or another deployment method)
+      - name: Restart service
+        run: |
+          echo "Restarting service..."
+          # Commands to restart any services (e.g., Apache, Nginx)
+
+trigger:
+  branch: main
