@@ -24,7 +24,7 @@ jobs:
     # Continuous Deployment job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Deploy application
         run: |
           echo "Deploying application..."
