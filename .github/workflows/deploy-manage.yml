@@ -29,8 +29,8 @@ jobs:
           echo '${{ secrets.MANAGESCERET }}' > MANAGESCERET.json
           SHEET_ID=$(jq -r '.SHEET_ID' MANAGESCERET.json)
           GOOGLE_CREDENTIALS_JSON=$(jq -c '.' MANAGESCERET.json)  # Get entire JSON string
-          echo "SHEET_ID=$SHEET_ID" >> $GITHUB_ENV
-          echo "GOOGLE_CREDENTIALS_JSON=$GOOGLE_CREDENTIALS_JSON" >> $GITHUB_ENV
+          echo "SHEET_ID=$SHEET_ID" >> .env
+          echo "GOOGLE_CREDENTIALS_JSON=$GOOGLE_CREDENTIALS_JSON" >> .env
         shell: bash
 
       - name: Deploy application
