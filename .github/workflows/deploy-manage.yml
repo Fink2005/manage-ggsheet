@@ -26,9 +26,9 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo '${{ secrets.managepython }}' > managepython.json
-          SHEET_ID=$(jq -r '.SHEET_ID' managepython.json)
-          GOOGLE_CREDENTIALS_JSON=$(jq -c '.' managepython.json)  # Get entire JSON string
+          echo '${{ secrets.MANAGESCERET }}' > MANAGESCERET.json
+          SHEET_ID=$(jq -r '.SHEET_ID' MANAGESCERET.json)
+          GOOGLE_CREDENTIALS_JSON=$(jq -c '.' MANAGESCERET.json)  # Get entire JSON string
           echo "SHEET_ID=$SHEET_ID" >> $GITHUB_ENV
           echo "GOOGLE_CREDENTIALS_JSON=$GOOGLE_CREDENTIALS_JSON" >> $GITHUB_ENV
         shell: bash
