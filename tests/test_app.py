@@ -31,7 +31,7 @@ def test_write_sheet(mock_setup_google_sheets, client):
     mock_sheet.update_cell.return_value = None
     mock_sheet.update.return_value = None
 
-    # Mock the function returning the worksheet
+    # Mock the function returning the workshee
     mock_setup_google_sheets.return_value.worksheet.return_value = mock_sheet
 
     # Sample payload
