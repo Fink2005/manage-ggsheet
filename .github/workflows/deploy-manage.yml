@@ -13,7 +13,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11.8" # Replace with your Python version (e.g., 3.8, 3.9)
+          python-version: "3.11.8" # Replace with your Python version
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests
@@ -24,10 +24,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "GOOGLE_CREDENTIALS_JSON=${{ secrets.GOOGLE_CREDENTIALS_JSON }}" >> .env
+          echo "SHEET_ID=${{ secrets.SHEET_ID }}" >> .env
+        shell: bash
+
       - name: Deploy application
         run: |
           echo "Deploying application..."
           # Commands to deploy your Flask app (e.g., using rsync or SCP)
+
       - name: Restart service
         run: |
           echo "Restarting service..."
