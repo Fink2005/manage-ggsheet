@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests
-        run: pytest tests/ # Assuming tests are in a `tests/` directory
+        run: pytest manage.py # Assuming tests are in a `tests/` directory
 
   cd:
     # Continuous Deployment job

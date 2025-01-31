@@ -30,6 +30,9 @@ def write_sheet():
 
     # Check for 'Tổng' in the rows
     for i in range(start_row - 1, len(all_values)):  # -1 because list index starts at 0
+        if len(sheet.row_values(i + 1)) == 0:
+             row_index = i + 1
+             break
         if 'Tổng' in all_values[i]:  # Check if 'Tổng' is in the row
             row_index = i + 1  # Insert a new row above the row containing 'Tổng'
 
@@ -41,10 +44,8 @@ def write_sheet():
             sheet.update_cell(row_index + 1, 7, sum_formula)  # Reapply the formula in the updated position
             sheet.update_cell(row_index + 1, 8, sum_formula2)  
             break
-    else:
-        # If 'Tổng' is not found, find the first empty row
-        while row_index <= len(all_values) and any(sheet.row_values(row_index)):
-            row_index += 1
+
+
     
     # Update the specific row with the provided data
     tienMat = int(data.get("tien_mat")) if data.get("tien_mat") is not None else 0
