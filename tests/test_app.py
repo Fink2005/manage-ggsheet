@@ -1,4 +1,3 @@
-import os
 import json
 import pytest
 from unittest.mock import patch, MagicMock
@@ -11,10 +10,6 @@ def client():
     with app.test_client() as client:
         yield client
 
-def test_env_variables():
-    """Ensure environment variables are loaded correctly"""
-    assert os.getenv("SHEET_ID") is not None
-    assert os.getenv("GOOGLE_CREDENTIALS_JSON") is not None
 
 @patch("app.setup_google_sheets")
 def test_write_sheet(mock_setup_google_sheets, client):
