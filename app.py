@@ -23,7 +23,7 @@ def write_sheet():
     sheet = setup_google_sheets().worksheet("sheet2")  # Ensure you're working with the correct sheet
     data = request.json
 
-    # Star checking from row 6
+    # Star checking from ro 6
     start_row = 6
     all_values = sheet.get_all_values()
     row_index = start_row
