@@ -70,8 +70,11 @@ def write_sheet():
 
     return jsonify({"message": f"Thêm hàng {row_index} thành công."})
 
-
+@app.route('/', methods=['GET'])
+def hehe():
+      return jsonify({"message": f"heheheh"})
 
 
 if __name__ == '__main__':
-    app.run(port=8080, debug=True)
+    port = int(os.getenv("PORT", 9090))
+    app.run(host="0.0.0.0", port=port)
