@@ -8,7 +8,7 @@ from google.oauth2.service_account import Credentials
 load_dotenv()
 app = Flask(__name__)
 CORS(app) 
-# Google Sheets Setup
+# Google Sheets Setu
 def setup_google_sheets():
     scope = [
         "https://www.googleapis.com/auth/spreadsheets"
