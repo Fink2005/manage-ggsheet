@@ -1,11 +1,11 @@
 {
-    "functions": {
-      "api/app.py": {
-        "runtime": "python@3.9"
-      }
-    },
     "rewrites": [
       { "source": "/(.*)", "destination": "/api/app.py" }
-    ]
+    ],
+    "functions": {
+        "api/app.py": {
+          "runtime": "python@3.9"
+        }
+      }
   }
   
