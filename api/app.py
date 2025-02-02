@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+import pytz
 # Load environment variables
 load_dotenv()
 app = Flask(__name__)
@@ -36,9 +37,10 @@ def setup_google_sheets():
 
 @app.route('/write', methods=['POST'])
 def write_sheet():
-    today = datetime.now()
 # Format the date as "DD.MM"
-    formatted_date = today.strftime("%d.%m")
+    vn_timezone = pytz.timezone("Asia/Ho_Chi_Minh")
+    current_time = datetime.now(vn_timezone)
+    formatted_date = current_time.strftime("%d.%m")
     try:
         # Setup Google Sheets and get the worksheet "sheet2"
         sheet = setup_google_sheets().worksheet(formatted_date)
