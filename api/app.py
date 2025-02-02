@@ -5,6 +5,7 @@ import json
 from dotenv import load_dotenv
 import os
 from google.oauth2.service_account import Credentials
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -38,14 +39,15 @@ def setup_google_sheets():
 def write_sheet():
     try:
         # Setup Google Sheets and get the worksheet "sheet2"
-        sheet = setup_google_sheets().worksheet("sheet2")
+        sheet = setup_google_sheets().worksheet("20.01")
+        print(sheet)
     except Exception as e:
         error_message = f"Error during Google Sheets setup: {e}"
         print(error_message)
         return jsonify({"error": error_message}), 500
 
     try:
-        # Retrieve JSON payload; force=True ensures it tries to parse the body as JSON
+        # Retrieve JSON payload; force=True ensures it tries to parse the body as JSN
         data = request.get_json(force=True)
         if not data:
             return jsonify({"error": "No JSON data provided"}), 400
