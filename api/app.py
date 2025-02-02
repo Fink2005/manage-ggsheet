@@ -72,7 +72,9 @@ def write_sheet():
 
 @app.route('/', methods=['GET'])
 def hehe():
-      return jsonify({"message": f"heheheh"})
+    a = os.getenv("SHEET_ID")
+    b = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    return jsonify({"message": f"{a}{b}"})
 
 
 if __name__ == '__main__':
