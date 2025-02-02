@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import os
 from google.oauth2.service_account import Credentials
 from datetime import datetime
-
 # Load environment variables
 load_dotenv()
 app = Flask(__name__)
@@ -37,9 +36,13 @@ def setup_google_sheets():
 
 @app.route('/write', methods=['POST'])
 def write_sheet():
+    today = datetime.now()
+# Format the date as "DD.MM"
+    formatted_date = today.strftime("%d.%m")
     try:
         # Setup Google Sheets and get the worksheet "sheet2"
-        sheet = setup_google_sheets().worksheet("20.01")
+        sheet = setup_google_sheets().worksheet(formatted_date)
+        print(sheet.get_all_values())
         print(sheet)
     except Exception as e:
         error_message = f"Error during Google Sheets setup: {e}"
