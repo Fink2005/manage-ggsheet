@@ -21,7 +21,7 @@ def setup_google_sheets():
 @app.route('/write', methods=['POST'])
 def write_sheet():
     try:
-        sheet = setup_google_sheets().worksheet("19.01")  # Ensure you're working with the correct sheet
+        sheet = setup_google_sheets().worksheet("sheet2")  # Ensure you're working with the correct sheet
         data = request
         # Star checking from ro 
         start_row = 6
