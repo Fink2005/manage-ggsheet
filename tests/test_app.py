@@ -1,7 +1,7 @@
 import json
 import pytest
 from unittest.mock import patch, MagicMock
-from app import app
+from api.app import app
 
 @pytest.fixture
 def client():
