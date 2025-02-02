@@ -68,7 +68,7 @@ def write_sheet():
     ]
     sheet.update(f"A{row_index}:{chr(65 + len(values) - 1)}{row_index}", [values])
 
-    return jsonify({"message": f"Thêm hàng {row_index} thành công."})
+    return jsonify({"message": f"Thêm hàng thành công."})
 
 @app.route('/', methods=['GET'])
 def hehe():
