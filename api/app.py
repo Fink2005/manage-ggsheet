@@ -114,10 +114,14 @@ def write_sheet():
         return jsonify({"error": error_message}), 500
 
     # Return a successful JSON response
-    return jsonify({"message": f"Thêm hàng {row_index} thành công."})
+    return jsonify({"message": f"Thêm hàng {row_index} thành công vào ngày {formatted_date}"})
 
 @app.route('/', methods=['GET'])
 def index():
+    today = datetime.now()
+# Format the date as "DD.MM"
+    formatted_date = today.strftime("%d.%m")
+    print(formatted_date)
     return jsonify({"message": "Hello from Flask!"})
 
 if __name__ == '__main__':
