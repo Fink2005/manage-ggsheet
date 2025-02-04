@@ -99,7 +99,7 @@ def write_sheet():
         return jsonify({"error": error_message}), 500
 
     try:
-        # Convert numeric fields safely
+        # Convert numeric fields safe
         tienMat = int(data.get("tien_mat")) if data.get("tien_mat") is not None else 0
         tienNganHang = int(data.get("chuyen_khoan")) if data.get("chuyen_khoan") is not None else 0
 
