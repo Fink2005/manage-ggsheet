@@ -132,7 +132,7 @@ def write_sheet():
     try:
         subject = f"Nhân viên {data.get("nhan_vien")}"
         body = f"khách hàng {data.get("khach_hang")} đã thanh toán {'chuyển khoản: ' + str(tienNganHang) if tienNganHang != 0 else ''} {'tiền mặt: ' + str(tienMat) if tienMat != 0 else ''}"
-        image_path="./vitiencat.jpg"
+        image_path="../assets/vitiencat.jpg"
         send_email(subject, body, image_path)
     except Exception as e:
         error_message = f"Error sending email notification: {e}"
