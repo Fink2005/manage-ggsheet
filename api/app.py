@@ -7,10 +7,24 @@ import os
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 import pytz
+import yagmail
 # Load environment variables
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
+
+
+def send_email(subject, body, image_path=None):
+    try:
+        # Connect to Gmail SMTP
+        yag = yagmail.SMTP(user=os.getenv("SENDER_EMAIL"), password=os.getenv("EMAIL_PASSWORD"))
+        contents = [body]
+        if image_path:
+            contents.append(image_path)
+        yag.send(to=os.getenv("RECEIVER_EMAIL"), subject=subject, contents=contents)
+        print("Email sent successfully")
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
 
 def setup_google_sheets():
     scope = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -114,7 +128,16 @@ def write_sheet():
         error_message = f"Error updating sheet: {e}"
         print(error_message)
         return jsonify({"error": error_message}), 500
-
+    
+    try:
+        subject = f"Nhân viên {data.get("nhan_vien")}"
+        body = f"khách hàng {data.get("khach_hang")} đã thanh toán {'chuyển khoản: ' + str(tienNganHang) if tienNganHang != 0 else ''} {'tiền mặt: ' + str(tienMat) if tienMat != 0 else ''}"
+        image_path="./vitiencat.jpg"
+        send_email(subject, body, image_path)
+    except Exception as e:
+        error_message = f"Error sending email notification: {e}"
+        print(error_message)
+        return jsonify({"error": error_message}), 500   
     # Return a successful JSON response
     return jsonify({"message": f"Thêm hàng {row_index} thành công vào ngày {formatted_date}"})
 
