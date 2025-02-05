@@ -82,17 +82,18 @@ def write_sheet():
 
         # Check for an empty row or for a row containing 'Tổng
         for i in range(start_row - 1, len(all_values)):
-            if len(sheet.row_values(i + 1)) == 0:
-                row_index = i + 1
-                break
-            if 'Tổng' in all_values[i + 1]:
+              if 'Tổng' in all_values[i + 1]:
                 row_index = i + 1
                 sheet.insert_row([], row_index)
-                sum_formula = f"=SUM(G{start_row}:G{row_index})"
-                sum_formula2 = f"=SUM(H{start_row}:H{row_index})"
-                sheet.update_cell(row_index + 1, 7, sum_formula)
-                sheet.update_cell(row_index + 1, 8, sum_formula2)
+                sum_formula = f"=SUM(G{start_row + 1}:G{row_index + 1})"
+                sum_formula2 = f"=SUM(H{start_row + 1}:H{row_index + 1})"
+                sheet.update_cell(row_index + 2, 7, sum_formula)
+                sheet.update_cell(row_index + 2, 8, sum_formula2)
                 break
+              if len(sheet.row_values(i + 1)) == 0:
+                    row_index = i + 1
+                    break
+          
     except Exception as e:
         error_message = f"Error processing rows: {e}"
         print(error_message)
