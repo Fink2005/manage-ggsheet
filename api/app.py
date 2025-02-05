@@ -85,7 +85,7 @@ def write_sheet():
             if len(sheet.row_values(i + 1)) == 0:
                 row_index = i + 1
                 break
-            if 'Tổng' in all_values[i]:
+            if 'Tổng' in all_values[i + 1]:
                 row_index = i + 1
                 sheet.insert_row([], row_index)
                 sum_formula = f"=SUM(G{start_row}:G{row_index})"
