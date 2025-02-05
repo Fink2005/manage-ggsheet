@@ -80,7 +80,7 @@ def write_sheet():
         all_values = sheet.get_all_values()
         row_index = start_row
 
-        # Check for an empty row or for a row containing 'Tổng'
+        # Check for an empty row or for a row containing 'Tổng
         for i in range(start_row - 1, len(all_values)):
             if len(sheet.row_values(i + 1)) == 0:
                 row_index = i + 1
