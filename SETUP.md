@@ -67,7 +67,7 @@ POST https://managevitiencat.vercel.app/setup-month
 ```
 Body (tùy chọn):
 ```json
-{ "date": "01.04" }
+{ "date": "01.04.2026" }
 ```
 
 ---
@@ -77,9 +77,9 @@ Body (tùy chọn):
 ```
 Nhân viên nhập data → POST /write
     ↓
-Hệ thống kiểm tra tab "25.03" có chưa?
+Hệ thống kiểm tra tab "25.03.2026" có chưa?
     ↓ Chưa có
-Tự clone tab "QuanLyViTienCat" → đặt tên "25.03"
+Tự clone tab "QuanLyViTienCat" → đặt tên "25.03.2026"
     ↓
 Ghi dữ liệu bình thường vào tab
 ```
@@ -87,12 +87,12 @@ Ghi dữ liệu bình thường vào tab
 **Kết quả trong Google Spreadsheet:**
 ```
 Spreadsheet: Vi Tien Cat - Doanh Thu
-├── QuanLyViTienCat    ← không bao giờ xóa
-├── 01.03
-├── 02.03
+├── QuanLyViTienCat         ← không bao giờ xóa
+├── 01.03.2025
 ├── ...
-├── 25.03       ← tab hôm nay
-└── 26.03       ← tự tạo ngày mai
+├── 25.03.2026       ← tab hôm nay
+├── 26.03.2026       ← tự tạo ngày mai
+└── 01.01.2027       ← tự tạo sang năm
 ```
 
 ---

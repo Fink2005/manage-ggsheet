@@ -102,7 +102,7 @@ def get_or_create_worksheet(spreadsheet, sheet_name):
 def write_sheet():
     vn_timezone = pytz.timezone("Asia/Ho_Chi_Minh")
     current_time = datetime.now(vn_timezone)
-    formatted_date = current_time.strftime("%d.%m")
+    formatted_date = current_time.strftime("%d.%m.%Y")
 
     try:
         spreadsheet = setup_google_sheets()
@@ -232,7 +232,7 @@ def health():
 @app.route('/', methods=['GET'])
 def index():
     vn_timezone = pytz.timezone("Asia/Ho_Chi_Minh")
-    formatted_date = datetime.now(vn_timezone).strftime("%d.%m")
+    formatted_date = datetime.now(vn_timezone).strftime("%d.%m.%Y")
     return jsonify({"message": "Hello from Flask!", "current_sheet_tab": formatted_date})
 
 
