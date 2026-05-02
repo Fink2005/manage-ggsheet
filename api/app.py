@@ -9,13 +9,115 @@ from datetime import datetime
 import pytz
 import yagmail
 
-# Load environment variables
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
 TEMPLATE_SHEET_NAME = "QuanLyViTienCat"
+CONFIG_SHEET_NAME = "Config"
 
+
+# ─────────────────────────────────────────────
+# Google Sheets helpers
+# ─────────────────────────────────────────────
+
+def setup_google_client():
+    """Khởi tạo Google Sheets client với scope Drive + Sheets."""
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",  # cần để tạo spreadsheet mới
+    ]
+    credentials_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    if not credentials_json:
+        raise Exception("GOOGLE_CREDENTIALS_JSON environment variable not set.")
+
+    try:
+        creds_info = json.loads(credentials_json)
+    except Exception as e:
+        raise Exception("Error parsing GOOGLE_CREDENTIALS_JSON: " + str(e))
+
+    creds = Credentials.from_service_account_info(creds_info, scopes=scope)
+    return gspread.authorize(creds)
+
+
+def get_year_spreadsheet(client, year):
+    """
+    Lấy spreadsheet của năm từ registry (tab Config).
+    Nếu chưa có → tự tạo spreadsheet mới + clone template + đăng ký vào Config.
+    """
+    master_id = os.getenv("MASTER_SHEET_ID")
+    if not master_id:
+        raise Exception("MASTER_SHEET_ID environment variable not set.")
+
+    master = client.open_by_key(master_id)
+
+    # Đọc registry Config
+    config_ws = master.worksheet(CONFIG_SHEET_NAME)
+    records = config_ws.get_all_values()  # [[Year, SpreadsheetID], ...]
+
+    for row in records[1:]:  # bỏ qua header row
+        if len(row) >= 2 and row[0] == str(year):
+            print(f"[INFO] Tìm thấy spreadsheet năm {year}: {row[1]}")
+            return client.open_by_key(row[1])
+
+    # Chưa có → tạo mới
+    print(f"[INFO] Chưa có spreadsheet năm {year}, tiến hành tạo mới...")
+
+    # 1. Tạo spreadsheet mới
+    new_spreadsheet = client.create(f"Vi Tien Cat - Doanh Thu {year}")
+    print(f"[INFO] Đã tạo spreadsheet: {new_spreadsheet.id}")
+
+    # 2. Clone tab QuanLyViTienCat từ master sang spreadsheet mới
+    template_ws = master.worksheet(TEMPLATE_SHEET_NAME)
+    result = template_ws.copy_to(new_spreadsheet.id)
+    copied_ws = new_spreadsheet.get_worksheet_by_id(result["sheetId"])
+    copied_ws.update_title(TEMPLATE_SHEET_NAME)
+    print(f"[INFO] Đã clone tab '{TEMPLATE_SHEET_NAME}' sang spreadsheet mới")
+
+    # 3. Xóa tab mặc định "Sheet1" nếu còn
+    try:
+        default_ws = new_spreadsheet.worksheet("Sheet1")
+        new_spreadsheet.del_worksheet(default_ws)
+    except gspread.exceptions.WorksheetNotFound:
+        pass
+
+    # 4. Đăng ký vào Config của master
+    config_ws.append_row([str(year), new_spreadsheet.id])
+    print(f"[INFO] Đã đăng ký năm {year} vào Config: {new_spreadsheet.id}")
+
+    return new_spreadsheet
+
+
+def get_or_create_worksheet(spreadsheet, sheet_name):
+    """
+    Lấy worksheet theo tên trong spreadsheet năm.
+    Nếu chưa tồn tại → tự clone từ tab QuanLyViTienCat.
+    """
+    try:
+        ws = spreadsheet.worksheet(sheet_name)
+        print(f"[INFO] Đã tìm thấy worksheet '{sheet_name}'")
+        return ws
+    except gspread.exceptions.WorksheetNotFound:
+        print(f"[INFO] Worksheet '{sheet_name}' chưa có, tạo mới từ template...")
+
+    try:
+        template_ws = spreadsheet.worksheet(TEMPLATE_SHEET_NAME)
+    except gspread.exceptions.WorksheetNotFound:
+        raise Exception(
+            f"Tab '{TEMPLATE_SHEET_NAME}' không tồn tại trong spreadsheet! "
+            f"Vui lòng tạo tab '{TEMPLATE_SHEET_NAME}' với format chuẩn."
+        )
+
+    result = template_ws.copy_to(spreadsheet.id)
+    new_ws = spreadsheet.get_worksheet_by_id(result["sheetId"])
+    new_ws.update_title(sheet_name)
+    print(f"[INFO] Đã tạo worksheet mới: '{sheet_name}'")
+    return new_ws
+
+
+# ─────────────────────────────────────────────
+# Email
+# ─────────────────────────────────────────────
 
 def send_email(subject, body, image_path=None):
     try:
@@ -29,85 +131,22 @@ def send_email(subject, body, image_path=None):
         print(f"Failed to send email: {str(e)}")
 
 
-def setup_google_sheets():
-    """Khởi tạo kết nối Google Sheets và trả về đối tượng Spreadsheet."""
-    scope = ["https://www.googleapis.com/auth/spreadsheets"]
-    credentials_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
-    if not credentials_json:
-        raise Exception("GOOGLE_CREDENTIALS_JSON environment variable not set.")
-
-    try:
-        creds_info = json.loads(credentials_json)
-    except Exception as e:
-        raise Exception("Error parsing GOOGLE_CREDENTIALS_JSON: " + str(e))
-
-    try:
-        creds = Credentials.from_service_account_info(creds_info, scopes=scope)
-    except Exception as e:
-        raise Exception("Error creating credentials: " + str(e))
-
-    client = gspread.authorize(creds)
-    sheet_id = os.getenv("SHEET_ID")
-    if not sheet_id:
-        raise Exception("SHEET_ID environment variable not set.")
-
-    return client.open_by_key(sheet_id)
-
-
-def get_or_create_worksheet(spreadsheet, sheet_name):
-    """
-    Lấy worksheet theo tên. Nếu chưa tồn tại, tự động clone từ tab 'Template'.
-    Giúp loại bỏ hoàn toàn việc tạo spreadsheet mới mỗi tháng.
-    """
-    try:
-        # Thử lấy worksheet đã tồn tại
-        ws = spreadsheet.worksheet(sheet_name)
-        print(f"[INFO] Đã tìm thấy worksheet '{sheet_name}'")
-        return ws
-    except gspread.exceptions.WorksheetNotFound:
-        print(f"[INFO] Worksheet '{sheet_name}' chưa tồn tại, tiến hành tạo mới từ template...")
-
-    # Lấy tab Template
-    try:
-        template_ws = spreadsheet.worksheet(TEMPLATE_SHEET_NAME)
-    except gspread.exceptions.WorksheetNotFound:
-        raise Exception(
-            f"Tab '{TEMPLATE_SHEET_NAME}' không tồn tại trong spreadsheet! "
-            f"Vui lòng tạo tab 'QuanLyViTienCat' với format chuẩn trước khi sử dụng."
-        )
-
-    # Duplicate tab Template sang sheet mới (trong cùng spreadsheet)
-    try:
-        body = {"destinationSpreadsheetId": spreadsheet.id}
-        result = spreadsheet.client.copy(
-            template_ws.id,
-            spreadsheet_id=spreadsheet.id,
-            dest_spreadsheet_id=spreadsheet.id,
-        )
-        new_sheet_id = result["sheetId"]
-    except Exception as e:
-        raise Exception(f"Lỗi khi duplicate template: {str(e)}")
-
-    # Đổi tên tab mới thành sheet_name
-    try:
-        new_ws = spreadsheet.get_worksheet_by_id(new_sheet_id)
-        new_ws.update_title(sheet_name)
-        print(f"[INFO] Đã tạo worksheet mới: '{sheet_name}' từ template")
-        return new_ws
-    except Exception as e:
-        raise Exception(f"Lỗi khi đổi tên worksheet: {str(e)}")
-
+# ─────────────────────────────────────────────
+# Routes
+# ─────────────────────────────────────────────
 
 @app.route('/write', methods=['POST'])
 def write_sheet():
     vn_timezone = pytz.timezone("Asia/Ho_Chi_Minh")
     current_time = datetime.now(vn_timezone)
-    formatted_date = current_time.strftime("%d.%m.%Y")
+    formatted_date = current_time.strftime("%d.%m")   # tab: "03.05"
+    current_year = current_time.year                  # spreadsheet: "Vi Tien Cat 2026"
 
     try:
-        spreadsheet = setup_google_sheets()
+        client = setup_google_client()
+        spreadsheet = get_year_spreadsheet(client, current_year)
         sheet = get_or_create_worksheet(spreadsheet, formatted_date)
-        print(f"[INFO] Đang ghi vào worksheet '{formatted_date}'")
+        print(f"[INFO] Ghi vào [{current_year}] → tab '{formatted_date}'")
     except Exception as e:
         error_message = f"Error during Google Sheets setup: {e}"
         print(error_message)
@@ -118,9 +157,7 @@ def write_sheet():
         if not data:
             return jsonify({"error": "No JSON data provided"}), 400
     except Exception as e:
-        error_message = f"Error reading JSON data: {e}"
-        print(error_message)
-        return jsonify({"error": error_message}), 400
+        return jsonify({"error": f"Error reading JSON data: {e}"}), 400
 
     try:
         start_row = 6
@@ -141,9 +178,7 @@ def write_sheet():
                 break
 
     except Exception as e:
-        error_message = f"Error processing rows: {e}"
-        print(error_message)
-        return jsonify({"error": error_message}), 500
+        return jsonify({"error": f"Error processing rows: {e}"}), 500
 
     try:
         tienMat = int(data.get("tien_mat")) if data.get("tien_mat") is not None else 0
@@ -168,9 +203,7 @@ def write_sheet():
         sheet.update(cell_range, [values])
 
     except Exception as e:
-        error_message = f"Error updating sheet: {e}"
-        print(error_message)
-        return jsonify({"error": error_message}), 500
+        return jsonify({"error": f"Error updating sheet: {e}"}), 500
 
     try:
         subject = f"Nhân viên {data.get('nhan_vien')}"
@@ -179,36 +212,34 @@ def write_sheet():
             f"{'chuyển khoản: ' + str(tienNganHang) if tienNganHang != 0 else ''} "
             f"{'tiền mặt: ' + str(tienMat) if tienMat != 0 else ''}"
         )
-        image_path = "assets/vitiencat.jpg"
-        send_email(subject, body, image_path)
+        send_email(subject, body, "assets/vitiencat.jpg")
     except Exception as e:
-        error_message = f"Error sending email notification: {e}"
-        print(error_message)
-        return jsonify({"error": error_message}), 500
+        print(f"Error sending email: {e}")
 
-    return jsonify({"message": f"Thêm hàng {row_index} thành công vào ngày {formatted_date}"})
+    return jsonify({
+        "message": f"Thêm hàng {row_index} thành công vào ngày {formatted_date} năm {current_year}"
+    })
 
 
-@app.route('/setup-month', methods=['POST'])
-def setup_month():
+@app.route('/setup-year', methods=['POST'])
+def setup_year():
     """
-    Endpoint để admin chủ động tạo trước tab cho ngày hôm nay (hoặc ngày chỉ định).
-    Body (tùy chọn): { "date": "DD.MM" }
+    Endpoint để admin chủ động khởi tạo spreadsheet cho năm chỉ định.
+    Body (tùy chọn): { "year": 2027 }
     """
     try:
         data = request.get_json(force=True) or {}
-        target_date = data.get("date")
+        vn_timezone = pytz.timezone("Asia/Ho_Chi_Minh")
+        target_year = data.get("year") or datetime.now(vn_timezone).year
 
-        if not target_date:
-            vn_timezone = pytz.timezone("Asia/Ho_Chi_Minh")
-            target_date = datetime.now(vn_timezone).strftime("%d.%m")
-
-        spreadsheet = setup_google_sheets()
-        ws = get_or_create_worksheet(spreadsheet, target_date)
+        client = setup_google_client()
+        spreadsheet = get_year_spreadsheet(client, int(target_year))
 
         return jsonify({
-            "message": f"Worksheet '{target_date}' đã sẵn sàng",
-            "sheet_title": ws.title,
+            "message": f"Spreadsheet năm {target_year} đã sẵn sàng",
+            "spreadsheet_title": spreadsheet.title,
+            "spreadsheet_id": spreadsheet.id,
+            "url": f"https://docs.google.com/spreadsheets/d/{spreadsheet.id}/edit",
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -216,14 +247,27 @@ def setup_month():
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Kiểm tra kết nối Google Sheets và liệt kê các tab hiện có."""
+    """Kiểm tra kết nối và xem danh sách spreadsheet theo năm."""
     try:
-        spreadsheet = setup_google_sheets()
-        worksheets = [ws.title for ws in spreadsheet.worksheets()]
+        client = setup_google_client()
+        master_id = os.getenv("MASTER_SHEET_ID")
+        master = client.open_by_key(master_id)
+        config_ws = master.worksheet(CONFIG_SHEET_NAME)
+        records = config_ws.get_all_values()
+
+        years = []
+        for row in records[1:]:
+            if len(row) >= 2:
+                years.append({
+                    "year": row[0],
+                    "spreadsheet_id": row[1],
+                    "url": f"https://docs.google.com/spreadsheets/d/{row[1]}/edit",
+                })
+
         return jsonify({
             "status": "ok",
-            "spreadsheet_title": spreadsheet.title,
-            "worksheets": worksheets,
+            "master_spreadsheet": master.title,
+            "registered_years": years,
         })
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
@@ -232,8 +276,12 @@ def health():
 @app.route('/', methods=['GET'])
 def index():
     vn_timezone = pytz.timezone("Asia/Ho_Chi_Minh")
-    formatted_date = datetime.now(vn_timezone).strftime("%d.%m.%Y")
-    return jsonify({"message": "Hello from Flask!", "current_sheet_tab": formatted_date})
+    now = datetime.now(vn_timezone)
+    return jsonify({
+        "message": "Hello from Flask!",
+        "current_tab": now.strftime("%d.%m"),
+        "current_year": now.year,
+    })
 
 
 if __name__ == '__main__':
