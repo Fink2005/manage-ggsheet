@@ -7,8 +7,8 @@
 ## Bước 1: Chuẩn bị Google Spreadsheet
 
 1. Tạo **1 Google Spreadsheet mới** (đây là lần cuối bạn tạo spreadsheet)
-2. Tạo tab tên chính xác là `Template`
-3. Setup tab `Template` với format giống báo cáo hiện tại của bạn:
+2. Tạo tab tên chính xác là `QuanLyViTienCat`
+3. Setup tab `QuanLyViTienCat` với format giống báo cáo hiện tại của bạn:
    - Hàng 1: Tiêu đề "Báo cáo ngày DD.MM"
    - Hàng 2-5: Header (Khách hàng, Dịch vụ, Thanh toán, ...)
    - Hàng "Tổng" phía dưới
@@ -79,7 +79,7 @@ Nhân viên nhập data → POST /write
     ↓
 Hệ thống kiểm tra tab "25.03" có chưa?
     ↓ Chưa có
-Tự clone tab "Template" → đặt tên "25.03"
+Tự clone tab "QuanLyViTienCat" → đặt tên "25.03"
     ↓
 Ghi dữ liệu bình thường vào tab
 ```
@@ -87,7 +87,7 @@ Ghi dữ liệu bình thường vào tab
 **Kết quả trong Google Spreadsheet:**
 ```
 Spreadsheet: Vi Tien Cat - Doanh Thu
-├── Template    ← không bao giờ xóa
+├── QuanLyViTienCat    ← không bao giờ xóa
 ├── 01.03
 ├── 02.03
 ├── ...
@@ -101,6 +101,6 @@ Spreadsheet: Vi Tien Cat - Doanh Thu
 
 | Lỗi | Nguyên nhân | Cách fix |
 |-----|-------------|----------|
-| `Tab 'Template' không tồn tại` | Chưa tạo tab Template | Tạo tab tên chính xác là `Template` |
+| `Tab 'QuanLyViTienCat' không tồn tại` | Chưa tạo tab QuanLyViTienCat | Tạo tab tên chính xác là `QuanLyViTienCat` |
 | `SHEET_ID environment variable not set` | Chưa update Vercel env | Update `SHEET_ID` trong Vercel |
 | `GOOGLE_CREDENTIALS_JSON...` | Service account hết hạn | Tạo lại credentials JSON |

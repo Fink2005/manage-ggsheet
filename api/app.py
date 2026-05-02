@@ -14,7 +14,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-TEMPLATE_SHEET_NAME = "Template"
+TEMPLATE_SHEET_NAME = "QuanLyViTienCat"
 
 
 def send_email(subject, body, image_path=None):
@@ -73,7 +73,7 @@ def get_or_create_worksheet(spreadsheet, sheet_name):
     except gspread.exceptions.WorksheetNotFound:
         raise Exception(
             f"Tab '{TEMPLATE_SHEET_NAME}' không tồn tại trong spreadsheet! "
-            f"Vui lòng tạo tab Template với format chuẩn trước khi sử dụng."
+            f"Vui lòng tạo tab 'QuanLyViTienCat' với format chuẩn trước khi sử dụng."
         )
 
     # Duplicate tab Template sang sheet mới (trong cùng spreadsheet)
