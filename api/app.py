@@ -132,6 +132,33 @@ def ensure_doanh_thu_tab(spreadsheet):
                 f'=H{month+1} + I{month+1}'
             ])
         dt_ws.update('G2:J13', monthly_data, value_input_option='USER_ENTERED')
+        
+        # Định dạng màu sắc và tiền tệ
+        try:
+            dt_ws.format("A1:E1", {
+                "backgroundColor": {"red": 0.1, "green": 0.45, "blue": 0.8},
+                "textFormat": {"bold": True, "foregroundColor": {"red": 1, "green": 1, "blue": 1}},
+                "horizontalAlignment": "CENTER"
+            })
+            dt_ws.format("G1:J1", {
+                "backgroundColor": {"red": 0.95, "green": 0.65, "blue": 0.1},
+                "textFormat": {"bold": True, "foregroundColor": {"red": 1, "green": 1, "blue": 1}},
+                "horizontalAlignment": "CENTER"
+            })
+            dt_ws.format("G2:G13", {
+                "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
+                "textFormat": {"bold": True},
+                "horizontalAlignment": "CENTER"
+            })
+            dt_ws.format("C2:E1000", {
+                "numberFormat": {"type": "NUMBER", "pattern": "#,##0"}
+            })
+            dt_ws.format("H2:J13", {
+                "numberFormat": {"type": "NUMBER", "pattern": "#,##0"}
+            })
+        except Exception as e:
+            print(f"[WARN] Không thể định dạng tab Doanh Thu: {e}")
+            
         return dt_ws
 
 
