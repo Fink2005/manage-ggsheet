@@ -111,6 +111,13 @@ def get_or_create_worksheet(spreadsheet, sheet_name):
     result = template_ws.copy_to(spreadsheet.id)
     new_ws = spreadsheet.get_worksheet_by_id(result["sheetId"])
     new_ws.update_title(sheet_name)
+    
+    # Tự động cập nhật ô A2 thành Báo cáo ngày DD.MM
+    try:
+        new_ws.update_acell('A2', f'Báo cáo ngày {sheet_name}')
+    except Exception as e:
+        print(f"[WARN] Không thể cập nhật tiêu đề A2: {e}")
+
     print(f"[INFO] Đã tạo worksheet mới: '{sheet_name}'")
     return new_ws
 
