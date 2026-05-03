@@ -67,13 +67,15 @@ def get_year_spreadsheet(client, year):
     new_spreadsheet = client.create(f"Vi Tien Cat - Doanh Thu {year}")
     
     # Chia sẻ file với email của admin (để admin có thể xem/sửa)
-    admin_email = os.getenv("ADMIN_EMAIL")
-    if admin_email:
-        try:
-            new_spreadsheet.share(admin_email, perm_type='user', role='writer')
-            print(f"[INFO] Đã share spreadsheet cho: {admin_email}")
-        except Exception as e:
-            print(f"[WARN] Không thể share spreadsheet cho {admin_email}: {e}")
+    admin_email_env = os.getenv("ADMIN_EMAIL")
+    if admin_email_env:
+        admin_emails = [email.strip() for email in admin_email_env.split(',') if email.strip()]
+        for email in admin_emails:
+            try:
+                new_spreadsheet.share(email, perm_type='user', role='writer')
+                print(f"[INFO] Đã share spreadsheet cho: {email}")
+            except Exception as e:
+                print(f"[WARN] Không thể share spreadsheet cho {email}: {e}")
     else:
         print("[WARN] Chưa cấu hình ADMIN_EMAIL, file chỉ tồn tại trong Drive của Service Account!")
 
