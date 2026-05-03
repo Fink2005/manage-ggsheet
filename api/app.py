@@ -197,11 +197,24 @@ def get_or_create_worksheet(spreadsheet, sheet_name):
     new_ws = spreadsheet.get_worksheet_by_id(result["sheetId"])
     new_ws.update_title(sheet_name)
     
-    # Tự động cập nhật ô A2 thành Báo cáo ngày DD.MM
+    # Tự động tìm và cập nhật ô chứa "Báo cáo ngày"
     try:
-        new_ws.update_acell('A2', f'Báo cáo ngày {sheet_name}')
+        # Lấy dữ liệu 5 dòng đầu tiên để tìm chữ "Báo cáo ngày"
+        header_values = new_ws.get("A1:K5")
+        found = False
+        for r_idx, row in enumerate(header_values):
+            for c_idx, val in enumerate(row):
+                if "Báo cáo ngày" in str(val):
+                    new_ws.update_cell(r_idx + 1, c_idx + 1, f"Báo cáo ngày {sheet_name}")
+                    print(f"[INFO] Đã cập nhật tiêu đề tại R{r_idx+1}C{c_idx+1}")
+                    found = True
+                    break
+            if found:
+                break
+        if not found:
+            print("[WARN] Không tìm thấy chữ 'Báo cáo ngày' trong 5 dòng đầu tiên!")
     except Exception as e:
-        print(f"[WARN] Không thể cập nhật tiêu đề A2: {e}")
+        print(f"[WARN] Lỗi khi cập nhật tiêu đề Báo cáo ngày: {e}")
 
     # Tự động cập nhật tab Doanh Thu
     try:
