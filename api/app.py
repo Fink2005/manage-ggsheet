@@ -100,6 +100,39 @@ def get_year_spreadsheet(client, year):
     return new_spreadsheet
 
 
+def ensure_doanh_thu_tab(spreadsheet):
+    """
+    Tạo hoặc lấy tab 'Doanh Thu' trong spreadsheet để thống kê ngày/tháng.
+    """
+    try:
+        dt_ws = spreadsheet.worksheet("Doanh Thu")
+        return dt_ws
+    except gspread.exceptions.WorksheetNotFound:
+        print("[INFO] Đang tạo tab 'Doanh Thu'...")
+        dt_ws = spreadsheet.add_worksheet(title="Doanh Thu", rows=1000, cols=15)
+        
+        # Setup headers
+        headers = [
+            "Tháng", "Ngày", "Tiền mặt", "Chuyển khoản", "Tổng ngày", 
+            "", 
+            "Tổng kết Tháng", "Tiền mặt", "Chuyển khoản", "Tổng cộng"
+        ]
+        dt_ws.append_row(headers)
+        
+        # Setup Monthly Summary Formulas
+        monthly_data = []
+        for month in range(1, 13):
+            month_str = f"{month:02d}"
+            monthly_data.append([
+                month_str,
+                f'=SUMIF(A:A, "{month_str}", C:C)',
+                f'=SUMIF(A:A, "{month_str}", D:D)',
+                f'=H{month+1} + I{month+1}'
+            ])
+        dt_ws.update('G2:J13', monthly_data, value_input_option='USER_ENTERED')
+        return dt_ws
+
+
 def get_or_create_worksheet(spreadsheet, sheet_name):
     """
     Lấy worksheet theo tên trong spreadsheet năm.
@@ -129,6 +162,27 @@ def get_or_create_worksheet(spreadsheet, sheet_name):
         new_ws.update_acell('A2', f'Báo cáo ngày {sheet_name}')
     except Exception as e:
         print(f"[WARN] Không thể cập nhật tiêu đề A2: {e}")
+
+    # Tự động cập nhật tab Doanh Thu
+    try:
+        dt_ws = ensure_doanh_thu_tab(spreadsheet)
+        month_str = sheet_name.split('.')[1] if '.' in sheet_name else ""
+        
+        # Lấy row trống tiếp theo dựa vào cột A
+        col_a = dt_ws.col_values(1)
+        next_row = len(col_a) + 1
+        
+        row_data = [[
+            month_str,
+            sheet_name,
+            f'=IFERROR(VALUE(SUBSTITUTE(SUBSTITUTE(VLOOKUP("Tổng", \'{sheet_name}\'!B:H, 6, FALSE), " đ", ""), ".", "")), 0)',
+            f'=IFERROR(VALUE(SUBSTITUTE(SUBSTITUTE(VLOOKUP("Tổng", \'{sheet_name}\'!B:H, 7, FALSE), " đ", ""), ".", "")), 0)',
+            f'=C{next_row} + D{next_row}'
+        ]]
+        dt_ws.update(f'A{next_row}:E{next_row}', row_data, value_input_option='USER_ENTERED')
+        print(f"[INFO] Đã cập nhật tab Doanh Thu cho ngày: '{sheet_name}'")
+    except Exception as e:
+        print(f"[WARN] Lỗi khi cập nhật tab Doanh Thu: {e}")
 
     print(f"[INFO] Đã tạo worksheet mới: '{sheet_name}'")
     return new_ws
